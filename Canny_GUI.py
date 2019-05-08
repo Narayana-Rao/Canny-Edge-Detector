@@ -1,5 +1,4 @@
 
-
 """ GNR602 Course Project work
 
 Title: Implementation of Canny Edge Detector
@@ -8,27 +7,21 @@ Submitted by
     Narayana Rao Bhogapurapu 184310003
     Vikram Kumar Purbey      183310014
     Gyaneshwar Patle         183310022
-
-
 """
-
 import sys
 import numpy as np
 import cv2
 from os import path
 from PyQt5 import QtWidgets,QtCore
-import math
 from PyQt5.QtWidgets import QMessageBox,QLabel
-
+import math
 import time
 ### External files
 import Threshold
 import Hist_window
 import sigma_in
 from outplot_pyqt_tab import MplCanvas as mplt_plot
-#from progress_Overlay import Overlay
 
-################################################
 class Window(QtWidgets.QMainWindow):
 
     def __init__(self):
@@ -45,9 +38,6 @@ class Window(QtWidgets.QMainWindow):
         self.statusBar().showMessage('Ready')
         self.tab_Var = None
         self.completed = 0
-        #progress overlay
-#        self.overlay = Overlay(self)
-#        self.overlay.hide()
         # Variables
         self.f_type = None
         self.t_index  = None
@@ -78,7 +68,6 @@ class Window(QtWidgets.QMainWindow):
 
 ##############################################################################         
     def menu(self):
-        
         """""""""""""""
         Tab Widget for Plotting
         """""""""""""""
@@ -92,7 +81,6 @@ class Window(QtWidgets.QMainWindow):
         self.setCentralWidget(self.main_widget)  
         self.tabWidget.tabCloseRequested.connect(self.close_tab)
         self.tab = QtWidgets.QWidget()    
-        
         """""""""""""""
         Main Menu 
         """""""""""""""
@@ -101,25 +89,19 @@ class Window(QtWidgets.QMainWindow):
         File_open.setShortcut("Ctrl+O")
         File_open.setStatusTip('Open a File')
         File_open.triggered.connect(self.File_Open_window)
-#        
 #        '''Process Menu'''
         c_edge = QtWidgets.QAction("Canny Edge Detector", self)
         c_edge.triggered.connect(self.G_Blur)                
-#        
         mainMenu = self.menuBar()
         fileMenu = mainMenu.addMenu('&File')
         fileMenu.addAction(File_open)
-        
         processMenu = mainMenu.addMenu('&Process')
         processMenu.addAction(c_edge)
-        
 ###############################################################################
         '''Main menu Callback Functions''' 
 ############################################################################### 
     def close_tab(self,index):
-#        print(index)
         self.tabWidget.removeTab(index)
-        
     def add_tab(self):
         tab =QtWidgets.QWidget(self.tabWidget)
         self.tabWidget.addTab(tab,'Title')
@@ -139,8 +121,6 @@ class Window(QtWidgets.QMainWindow):
             self.fname = file_name[0]
             self.f_type = path.splitext(file_name[0])
             (self.directory, self.filename) = path.split(self.fname)
-            
-            
             self.raw_data =np.array(cv2.imread(self.fname,cv2.IMREAD_GRAYSCALE))          
             self.tab_Var = mplt_plot(self.tab,self.raw_data)
             self.t_index = self.tabWidget.addTab(self.tab_Var, str(self.filename))
@@ -169,14 +149,11 @@ class Window(QtWidgets.QMainWindow):
                 if sumh != 0:
                     h /= sumh                                       
                 fil=np.array(h)          
-    #            fil=np.array([[1/16,1/8,1/16],[1/8,1/4,1/8],[1/16,1/8,1/16]])
                 gaussian_out = np.array(self.raw_data.copy())
                 (h,w) = self.raw_data.shape
                 (hf,wf)=fil.shape
-               
                 hf2=hf//2
                 wf2=wf//2
-                
                 for i in range(hf2, h-hf2):
                   for j in range(wf2, w-wf2):
                     tsum=0
@@ -187,9 +164,7 @@ class Window(QtWidgets.QMainWindow):
                   if self.completed < 10:
                       self.completed += 0.1
                       self.progress.setValue(self.completed)
-
                 self.gaussian_out = gaussian_out
-#                self.completed = 15
                 self.progress.setValue(self.completed)
                 tab_Var = mplt_plot(self.tab,gaussian_out)
                 self.t_index = self.tabWidget.addTab(tab_Var, 'Gaussian Blur')
@@ -198,7 +173,6 @@ class Window(QtWidgets.QMainWindow):
                 self.gradient()          
 
     def gradient(self):
-#        self.overlay.show()
         image_out_grad = np.array(self.gaussian_out.copy())
         image_out_angle = np.array(self.gaussian_out.copy())
         gx=np.array([[-1,0,1],[-2,0,2],[-1,0,1]])
@@ -221,22 +195,17 @@ class Window(QtWidgets.QMainWindow):
             image_out_grad[i][j]=math.sqrt((tsumx*tsumx)+(tsumy*tsumy))
             theta = np.arctan2(tsumy, tsumx)
             image_out_angle[i][j] = (np.round(theta * (5.0 / np.pi)) + 5) % 5   #angle quantization 
-            
           if self.completed < 35:
               self.completed += 0.03
               self.progress.setValue(self.completed)
         self.image_out_grad = image_out_grad
         self.image_out_angle = image_out_angle
         self.progress.setValue(self.completed)
-#        time.sleep(1)
         tab_Var = mplt_plot(self.tab,image_out_grad)
         self.t_index = self.tabWidget.addTab(tab_Var, 'Gradient')
         self.tabWidget.setCurrentIndex(self.t_index)
         QMessageBox.about(self,"Status!", "Gradient image Generated!")
         self.nonmaxima() 
-
-     
-
 
     def nonmaxima(self):
         nonmaxima_img = np.array(self.image_out_grad.copy())
@@ -286,8 +255,7 @@ class Window(QtWidgets.QMainWindow):
                 self.h_thres = np.max(thresh)# Value
                 self.l_thres = np.min(thresh)# Value
                 self.thres()
-#        return nonmaxima_img
-        
+                
     def thres(self):
         im = self.nonmaxima_img    
         Imax = np.max(np.max(self.nonmaxima_img))
@@ -317,15 +285,7 @@ class Window(QtWidgets.QMainWindow):
         tab_Var = mplt_plot(self.tab,im)
         self.t_index = self.tabWidget.addTab(tab_Var, 'strong_Weak')
         self.tabWidget.setCurrentIndex(self.t_index)
-#        print(self.threshold,self.strong)        
-#        tab_Var = mplt_plot(self.tab,strong)
-#        self.t_index = self.tabWidget.addTab(tab_Var, 'strong')
-#        self.tabWidget.setCurrentIndex(self.t_index)
-#        tab_Var = mplt_plot(self.tab,threshold)
-#        self.t_index = self.tabWidget.addTab(tab_Var, 'threshold')
-#        self.tabWidget.setCurrentIndex(self.t_index)
         self.progress.setValue(70)
-        
         input_dialog2 = QtWidgets.QDialog()
         input_ui2 = Hist_window.Ui_Dialog()
         input_ui2.setupUi(input_dialog2)
@@ -336,12 +296,9 @@ class Window(QtWidgets.QMainWindow):
                 self.windows_size=self.windows_size
             else:
                 self.windows_size=self.windows_size+1
-
         self.hysteresis()        
-        
 
     def hysteresis(self):
-        
         finalEdges = self.strong.copy()
         thresholdedEdges = self.l_h_t
         currentPixels=[]
@@ -383,10 +340,7 @@ class Window(QtWidgets.QMainWindow):
         self.progress.setValue(100)
         self.statusBar().showMessage('Done!') 
 
-    
-
     def canny_edge(self):
-#        
         self.G_Blur()
 
     def close_application(self):
@@ -400,8 +354,6 @@ class Window(QtWidgets.QMainWindow):
         else:
             pass
 
-
-
     def infile_error(self):
         choice = QtWidgets.QMessageBox.question(self, 'File Error!',
                                         "No File Selected  \nWant to Select File?",
@@ -410,27 +362,15 @@ class Window(QtWidgets.QMainWindow):
         if choice == QtWidgets.QMessageBox.Yes:
             self.File_Open_window()
 
-#    def resizeEvent(self, event):
-#        self.overlay.resize(event.size())
-#        event.accept()
-
 ###############################################################################
 def run():
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle(QtWidgets.QStyleFactory.create('Fusion'))
-#    app.setStyleSheet('QMainWindow{background-color: white; border:1px solid blue;}')
     app.setStyleSheet('QMainWindow{background-color: white;}')
-#    app.showFullScreen()
     GUI = Window()              
-   
     GUI.show()
-    
-
     sys.exit(app.exec_())
-    
 ###############################################################################   
-
-    
 if __name__ == "__main__":
     run()
 
